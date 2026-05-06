@@ -16,6 +16,7 @@ In Migration vom ClaudeDesign-Prototyp (CDN-basiert, CSV-driven) zu Vite + React
 - **Wöchentliche Update-Checks** — `.github/dependabot.yml` öffnet PRs für npm- und Action-Updates; `.github/workflows/audit.yml` lässt CI bei `high`/`critical` Vulnerabilities fehlschlagen. Beim Hinzufügen neuer Deps prüfen, dass beide Mechanismen sie noch erfassen.
 - **Anon-Key + RLS** — der Supabase Anon-Key landet im Client (Vite env `VITE_SUPABASE_ANON_KEY`). Datenschutz wird ausschließlich über RLS-Policies in der DB durchgesetzt, nicht über Key-Geheimhaltung. Der `service_role`-Key kommt **nie** in den Client und nie ins Repo.
 - **`safeHttps()` auf jede externe URL** — sowohl client- als auch DB-seitig (`check (url ~* '^https://')`). Verhindert `javascript:`, `data:`, `file:` etc. aus eingegebenen Daten.
+- **Bilder ausschliesslich lokal** — Ressourcen-Bilder leben im Supabase-Storage-Bucket `resource-images`. Die DB-Spalte `image_path` ist ein **Bucket-Pfad**, keine externe URL. Hochladen passiert ausschließlich über das Admin-Panel; externe Bild-URLs werden weder beim Seed noch im UI akzeptiert.
 
 ## Arbeitsweise mit dem User
 
