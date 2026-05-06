@@ -60,13 +60,14 @@ body {
   text-decoration: none; color: inherit;
 }
 .wm-logo {
-  display: block;
-  width: 140px;
-  height: 60px;
-  background-image: url("../assets/phzh-logo.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: left center;
+  /* Text-Wordmark als Fallback. Echtes Logo: hier
+     `background-image: url("./assets/phzh-logo.png");` und `color: transparent;` setzen. */
+  display: inline-block;
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 22px;
+  letter-spacing: 0.01em;
+  color: var(--ink);
   flex-shrink: 0;
 }
 .wm-sep {
@@ -489,4 +490,29 @@ body {
   .tweaks { right: 12px; bottom: 12px; left: 12px; width: auto; }
   .hero-meta { grid-template-columns: repeat(3, 1fr); gap: 16px; }
   .hero-meta-n { font-size: 28px; }
+}
+
+/* ───── Loading / Error / Auth-Status ───── */
+.loading-state,
+.error-state {
+  max-width: 720px;
+  margin: 80px auto;
+  padding: 0 24px;
+  font-family: var(--f-sans);
+  color: var(--ink-2);
+}
+.error-state h1 {
+  font-family: var(--f-display);
+  font-weight: 400;
+  color: var(--ink);
+  margin: 0 0 16px;
+}
+.error-state pre {
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-x: auto;
 }
