@@ -72,7 +72,20 @@ create trigger resources_set_updated_at
   for each row execute function public.set_updated_at();
 
 -- ─────────────────────────────────────────────────────────────────────
--- 4. Row Level Security
+-- 4. GRANTs für die Supabase-Rollen
+--    Postgres prüft GRANTs ZUERST, danach RLS. Ohne diese Zeilen
+--    bekommst du "permission denied for table xyz" obwohl die RLS-Policy
+--    eigentlich erlauben würde. Supabase setzt das in neueren Projekten
+--    nicht mehr automatisch.
+-- ─────────────────────────────────────────────────────────────────────
+grant usage on schema public to anon, authenticated;
+grant select on public.categories to anon, authenticated;
+grant insert, update, delete on public.categories to authenticated;
+grant select on public.resources  to anon, authenticated;
+grant insert, update, delete on public.resources  to authenticated;
+
+-- ─────────────────────────────────────────────────────────────────────
+-- 5. Row Level Security
 --    Default in Postgres: keine Policy = kein Zugriff. Wir machen
 --    SELECT explizit für alle auf, und Schreib-Operationen nur für
 --    authenticated User.
@@ -135,7 +148,7 @@ create policy "resources_delete"
   using (true);
 
 -- ─────────────────────────────────────────────────────────────────────
--- 5. Storage-Bucket für Ressourcen-Bilder
+-- 6. Storage-Bucket für Ressourcen-Bilder
 --    public = true → Bilder sind über die public-URL direkt im Browser
 --    abrufbar (das brauchen wir für den Katalog).
 -- ─────────────────────────────────────────────────────────────────────
