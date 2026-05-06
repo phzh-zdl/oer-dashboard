@@ -15,7 +15,7 @@ export function useResources() {
     supabase
       .from('resources')
       .select('id, title, description, category_id, url, tags, image_path, featured, created_at, updated_at')
-      .order('created_at', { ascending: false })
+      .order('updated_at', { ascending: false })
       .then(({ data, error }) => {
         if (cancelled) return;
         if (error) {
