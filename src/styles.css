@@ -491,6 +491,121 @@ body {
   .hero-meta-n { font-size: 28px; }
 }
 
+/* ───── Auth (Login / Callback) ───── */
+.auth-shell {
+  min-height: 80vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 60px 24px;
+}
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px;
+}
+.auth-back {
+  display: inline-block;
+  margin-bottom: 28px;
+  font-size: 13px;
+  font-family: var(--f-mono);
+  color: var(--ink-3);
+  text-decoration: none;
+}
+.auth-back:hover { color: var(--ink); }
+.auth-title {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: 30px;
+  margin: 0 0 12px;
+  color: var(--ink);
+}
+.auth-lede {
+  color: var(--ink-2);
+  margin: 0 0 24px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.auth-form { display: grid; gap: 10px; }
+.auth-form label {
+  font-size: 12px;
+  font-family: var(--f-mono);
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.auth-form input {
+  font: inherit;
+  font-size: 15px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--ink);
+  outline: none;
+}
+.auth-form input:focus { border-color: var(--accent); }
+.auth-form button {
+  margin-top: 6px;
+  padding: 11px 14px;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.auth-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+.auth-msg {
+  margin-top: 18px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.auth-msg-ok { background: #eef3e8; color: #2d4a2a; border: 1px solid #c9d8b9; }
+.auth-msg-err { background: #f5e6e0; color: #6b2a1f; border: 1px solid #e0bfb0; }
+.auth-msg small { display: block; margin-top: 6px; opacity: 0.8; }
+
+/* ───── Admin-Shell (Dashboard und Folge-Seiten) ───── */
+.admin-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 32px 80px;
+}
+.admin-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0 16px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 32px;
+  font-family: var(--f-mono);
+  font-size: 13px;
+}
+.admin-back { color: var(--ink-2); text-decoration: none; }
+.admin-back:hover { color: var(--ink); }
+.admin-user { display: flex; align-items: center; gap: 14px; color: var(--ink-3); }
+.admin-logout {
+  background: none;
+  border: 1px solid var(--line);
+  padding: 5px 10px;
+  border-radius: var(--radius);
+  font: inherit;
+  cursor: pointer;
+  color: var(--ink-2);
+}
+.admin-logout:hover { background: var(--bg-raised); color: var(--ink); }
+.admin-main h1 {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: 32px;
+  margin: 0 0 16px;
+}
+.admin-nav-list { padding-left: 18px; }
+.admin-nav-list li { margin: 6px 0; }
+
 /* ───── Loading / Error / Auth-Status ───── */
 .loading-state,
 .error-state {
