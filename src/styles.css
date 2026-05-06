@@ -142,6 +142,33 @@ body {
 .featured-ctrl button:hover { border-color: var(--ink); background: var(--bg-raised); }
 .pager { min-width: 64px; text-align: center; }
 
+/* Pagination-Dots als Mobile-Scroll-Indikator (Desktop blendet sie aus
+   im Mobile-Block weiter unten) */
+.featured-dots {
+  display: none;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 0 16px;
+}
+.featured-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: var(--line);
+  padding: 0;
+  cursor: pointer;
+  transition: background .15s ease, transform .15s ease, width .15s ease;
+  flex-shrink: 0;
+}
+.featured-dot:hover { background: var(--ink-3); }
+.featured-dot.is-active {
+  background: var(--ink);
+  width: 24px;
+  border-radius: 4px;
+}
+
 .featured-viewport { overflow: hidden; padding-top: 6px; margin-top: -6px; }
 .featured-track {
   display: flex;
@@ -551,13 +578,14 @@ body {
     transition: none !important;
   }
   .featured-card {
-    flex: 0 0 86%;
-    padding-right: 14px;
+    flex: 0 0 100%;
+    padding-right: 0;
     scroll-snap-align: start;
   }
-  .featured-card:last-child { padding-right: 0; }
   /* Prev/Next-Buttons machen mit Touch-Scrolling keinen Sinn */
   .featured-ctrl { display: none; }
+  /* Pagination-Dots werden auf Mobile sichtbar */
+  .featured-dots { display: flex; }
 }
 
 @media (max-width: 620px) {
