@@ -1,0 +1,36 @@
+# Dependabot prüft wöchentlich, ob npm-Pakete oder GitHub-Actions Updates haben
+# (Sicherheits- und Routine-Updates) und öffnet automatisch Pull Requests.
+#
+# Das ist der Mechanismus, mit dem die Schule sicherstellen kann, dass die
+# Abhängigkeiten aktuell bleiben — als Ersatz dafür, dass wir kein CDN nutzen
+# und Code lokal bündeln.
+#
+# Doku: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Zurich"
+    open-pull-requests-limit: 5
+    groups:
+      # Patch- und Minor-Updates in einen einzigen PR pro Woche bündeln,
+      # damit nicht für jedes kleine Update ein eigener PR aufgeht.
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - "dependencies"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+      - "ci"

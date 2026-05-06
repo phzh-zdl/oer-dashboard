@@ -1,0 +1,10 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# SPA-Fallback: jede Route, die nicht als Datei existiert, liefert index.html.
+# Damit React Router auch bei Direkt-Zugriff auf /admin/... funktioniert.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

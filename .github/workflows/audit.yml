@@ -1,0 +1,32 @@
+# Bei jedem Push auf main und bei jedem Pull Request:
+#  1. npm install
+#  2. npm audit (--audit-level=high) — Build schlägt fehl bei high/critical CVE
+#  3. npm run build — sicherstellen, dass die Seite überhaupt baut
+#
+# Damit bekommst du sofort ein rotes X auf einem PR, wenn jemand eine Lib
+# einzieht, die eine kritische Lücke hat. Moderate/low werden geloggt, blocken
+# aber nicht — sonst bist du ständig blockiert von Lücken im Dev-Server.
+
+name: audit + build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install dependencies
+        run: npm ci
+      - name: Security audit (high/critical only)
+        run: npm audit --audit-level=high
+      - name: Production build
+        run: npm run build

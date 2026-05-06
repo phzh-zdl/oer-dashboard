@@ -6,6 +6,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 PHZH OER — a single-page catalog of Open Educational Resources for Pädagogische Hochschule Zürich. UI strings and content are German.
 
+## Status
+
+In Migration vom ClaudeDesign-Prototyp (CDN-basiert, CSV-driven) zu Vite + React + Supabase + Netlify mit Admin-Panel. Plan: `C:\Users\henry.chen\.claude\plans\delegated-booping-blum.md`.
+
+## Hartnäckige Constraints (gelten dauerhaft)
+
+- **Kein CDN** — alle Runtime-Abhängigkeiten kommen aus npm und werden lokal gebündelt. Schul-IT verbietet externe CDN-Requests im Browser. Das gilt auch für Fonts (→ via `@fontsource/*` als npm-Paket einbinden, nicht via Google Fonts CSS-Link).
+- **Wöchentliche Update-Checks** — `.github/dependabot.yml` öffnet PRs für npm- und Action-Updates; `.github/workflows/audit.yml` lässt CI bei `high`/`critical` Vulnerabilities fehlschlagen. Beim Hinzufügen neuer Deps prüfen, dass beide Mechanismen sie noch erfassen.
+- **Anon-Key + RLS** — der Supabase Anon-Key landet im Client (Vite env `VITE_SUPABASE_ANON_KEY`). Datenschutz wird ausschließlich über RLS-Policies in der DB durchgesetzt, nicht über Key-Geheimhaltung. Der `service_role`-Key kommt **nie** in den Client und nie ins Repo.
+- **`safeHttps()` auf jede externe URL** — sowohl client- als auch DB-seitig (`check (url ~* '^https://')`). Verhindert `javascript:`, `data:`, `file:` etc. aus eingegebenen Daten.
+
+## Arbeitsweise mit dem User
+
+Der User ist mit GitHub, Netlify und Supabase noch nicht vertraut. Beim Aufsetzen / Konfigurieren externer Dienste:
+- Schritt-für-Schritt-Anleitung mit erwarteten Klicks, URLs, Eingaben.
+- Pro Schritt kurz erklären, **was passiert** und **wozu**, nicht nur **wie**.
+- Verifikations-Anker: nach jedem Block ein konkretes "Du müsstest jetzt X sehen".
+- Code-Änderungen mache ich, manuelle Browser-/Dashboard-Schritte macht der User.
+
 ## Running it
 
 No build step, no package manager. Open `index.html` via any static file server from the project root (e.g. `python -m http.server`, `npx serve`). Loading via `file://` will break the `fetch('resources.csv')` call.
