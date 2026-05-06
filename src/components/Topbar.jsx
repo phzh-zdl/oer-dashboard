@@ -1,20 +1,44 @@
-// Kompakter Header — Logo via background-image (siehe styles.css).
-// Logo-Datei: src/assets/phzh-logo.png — wird von Vite gebündelt und
-// gefingerprintet (Cache-Busting bei Wechsel). Tausch über das File reicht.
+import { useState, useEffect } from 'react';
+
+// Header mit eingeklapptem Mobile-Menü.
+// Logo via background-image (siehe styles.css), echtes Logo durch
+// Austausch von src/assets/phzh-logo.png ersetzbar.
 export function Topbar({ totalCount, categoryCount }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // ESC schliesst das Menü, Klick außerhalb auch — über Body-Click-Handler.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e) => { if (e.key === 'Escape') setMenuOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [menuOpen]);
+
+  const closeMenu = () => setMenuOpen(false);
+
   return (
     <header className="topbar">
       <div className="topbar-row">
-        <a href="#" className="wordmark">
+        <a href="/" className="wordmark">
           <span className="wm-logo" role="img" aria-label="Pädagogische Hochschule Zürich" />
           <span className="wm-sep">·</span>
           <span className="wm-product">Open Educational Resources</span>
         </a>
-        <nav className="topbar-nav">
-          <a href="#featured">Im&nbsp;Fokus</a>
-          <a href="#katalog">Katalog</a>
-          <a href="#ueber">Über</a>
-          <a href="/admin" className="topbar-cta">Admin&nbsp;↗</a>
+
+        <button
+          className="topbar-burger"
+          aria-label={menuOpen ? 'Menü schliessen' : 'Menü öffnen'}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((o) => !o)}
+        >
+          <span aria-hidden="true">{menuOpen ? '×' : '☰'}</span>
+        </button>
+
+        <nav className={`topbar-nav ${menuOpen ? 'is-open' : ''}`}>
+          <a href="#featured" onClick={closeMenu}>Im&nbsp;Fokus</a>
+          <a href="#katalog" onClick={closeMenu}>Katalog</a>
+          <a href="#ueber" onClick={closeMenu}>Über</a>
+          <a href="/admin" className="topbar-cta" onClick={closeMenu}>Admin&nbsp;↗</a>
         </nav>
       </div>
 
