@@ -1,13 +1,12 @@
-// Kompakter Header — entspricht visuell dem ClaudeDesign-Prototyp,
-// aber das Logo ist als Text gerendert (kein externes PNG mehr).
-// Wenn ein echtes Logo gewünscht ist: Datei in src/assets/ ablegen,
-// und in styles.css `.wm-logo` mit `background-image: url(...)` setzen.
+// Kompakter Header — Logo via background-image (siehe styles.css).
+// Logo-Datei: src/assets/phzh-logo.png — wird von Vite gebündelt und
+// gefingerprintet (Cache-Busting bei Wechsel). Tausch über das File reicht.
 export function Topbar({ totalCount, categoryCount }) {
   return (
     <header className="topbar">
       <div className="topbar-row">
-        <a href="#" className="wordmark" aria-label="Pädagogische Hochschule Zürich">
-          <span className="wm-logo">PH Zürich</span>
+        <a href="#" className="wordmark">
+          <span className="wm-logo" role="img" aria-label="Pädagogische Hochschule Zürich" />
           <span className="wm-sep">·</span>
           <span className="wm-product">Open Educational Resources</span>
         </a>

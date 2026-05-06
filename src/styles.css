@@ -60,14 +60,13 @@ body {
   text-decoration: none; color: inherit;
 }
 .wm-logo {
-  /* Text-Wordmark als Fallback. Echtes Logo: hier
-     `background-image: url("./assets/phzh-logo.png");` und `color: transparent;` setzen. */
-  display: inline-block;
-  font-family: var(--f-display);
-  font-weight: 500;
-  font-size: 22px;
-  letter-spacing: 0.01em;
-  color: var(--ink);
+  display: block;
+  width: 140px;
+  height: 60px;
+  background-image: url("./assets/phzh-logo.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: left center;
   flex-shrink: 0;
 }
 .wm-sep {
