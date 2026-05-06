@@ -4,11 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-PHZH OER — a single-page catalog of Open Educational Resources for Pädagogische Hochschule Zürich. UI strings and content are German.
+PHZH OER — Katalog von Open Educational Resources der Pädagogische Hochschule Zürich. Public-Katalog mit Suche/Filter, plus Admin-Panel zum Anlegen/Bearbeiten/Löschen von Ressourcen und Kategorien (inkl. Bild-Upload). UI-Sprache: Deutsch.
 
-## Status
-
-In Migration vom ClaudeDesign-Prototyp (CDN-basiert, CSV-driven) zu Vite + React + Supabase + Netlify mit Admin-Panel. Plan: `C:\Users\henry.chen\.claude\plans\delegated-booping-blum.md`.
+Stack: **Vite + React 18** (Frontend), **Supabase** (Postgres + Auth + Storage), **Netlify** (Hosting). Repo: `phzh-zdl/oer-dashboard`. Audit-Vorlage in `AUDIT.md`.
 
 ## Hartnäckige Constraints (gelten dauerhaft)
 
@@ -17,6 +15,7 @@ In Migration vom ClaudeDesign-Prototyp (CDN-basiert, CSV-driven) zu Vite + React
 - **Anon-Key + RLS** — der Supabase Anon-Key landet im Client (Vite env `VITE_SUPABASE_ANON_KEY`). Datenschutz wird ausschließlich über RLS-Policies in der DB durchgesetzt, nicht über Key-Geheimhaltung. Der `service_role`-Key kommt **nie** in den Client und nie ins Repo.
 - **`safeHttps()` auf jede externe URL** — sowohl client- als auch DB-seitig (`check (url ~* '^https://')`). Verhindert `javascript:`, `data:`, `file:` etc. aus eingegebenen Daten.
 - **Bilder ausschliesslich lokal** — Ressourcen-Bilder leben im Supabase-Storage-Bucket `resource-images`. Die DB-Spalte `image_path` ist ein **Bucket-Pfad**, keine externe URL. Hochladen passiert ausschließlich über das Admin-Panel; externe Bild-URLs werden weder beim Seed noch im UI akzeptiert.
+- **Security-Header in `netlify.toml`** — CSP/HSTS/X-Frame-Options/Permissions-Policy. Bei neuen externen Hosts (z. B. Analytics) `connect-src` und `img-src` in der CSP ergänzen, sonst blockt der Browser die Requests.
 
 ## Arbeitsweise mit dem User
 
@@ -28,55 +27,154 @@ Der User ist mit GitHub, Netlify und Supabase noch nicht vertraut. Beim Aufsetze
 
 ## Running it
 
-No build step, no package manager. Open `index.html` via any static file server from the project root (e.g. `python -m http.server`, `npx serve`). Loading via `file://` will break the `fetch('resources.csv')` call.
+Voraussetzungen: Node 20+, npm.
 
-React, ReactDOM, Babel-Standalone, and SheetJS are pulled from CDNs at runtime; JSX is compiled in the browser by `@babel/standalone` (the `<script type="text/babel">` tag in `index.html`). There is no bundler, no test suite, no linter configured.
+```bash
+cp .env.example .env.local
+# In .env.local VITE_SUPABASE_URL und VITE_SUPABASE_ANON_KEY eintragen
+npm install
+npm run dev          # localhost:5173
+npm run build        # erzeugt dist/
+npm run preview      # serviert dist/ lokal
+```
 
-`src/styles.css` is referenced as `styles.css?v=6` — bump the version when changing CSS to bust caches.
-
-## Architecture
-
-Four scripts load in order from `index.html` and communicate exclusively through `window` globals:
-
-1. `src/data.js` → `window.PHZH_DATA = { CATEGORIES, RESOURCES }`. The hardcoded `RESOURCES` array is **fallback only**; real content comes from the CSV. `CATEGORIES` is the source of truth for category ids, labels, and accent colors — its ids must match the `kategorie` column values in CSVs.
-2. `src/placeholder.js` → `window.PHZH_PLACEHOLDER.placeholderSVG(resource, catLabel, w, h)`. Generates a deterministic striped SVG (data URL) per resource id, used when no `bild` is provided.
-3. `src/sheet.js` → `window.PHZH_SHEET.{ loadFromSheet, loadFromFile, parseCSV, rowsToResources }`. Loads CSV from a URL or a local CSV/XLSX file. Handles UTF-8 vs Windows-1252 (Excel-on-Windows exports), auto-detects `;` vs `,` delimiter, and accepts both German (`titel`, `beschreibung`, `kategorie`, `bild`, `fokus`) and English (`title`, `desc`, `cat`, `image`/`img`, `featured`) header names.
-4. `src/app.jsx` → React app mounted at `#root`.
-
-### Data flow
-
-On mount, `App` calls `PHZH_SHEET.loadFromSheet('resources.csv')` (relative path → loaded via `fetch`). If the user pastes a Google Sheets CSV URL into the Tweaks panel, that fetch replaces the local one. If neither succeeds, the hardcoded `FALLBACK_RESOURCES` from `data.js` is used. Source of truth at runtime is the `sheetResources` state, normalized so every resource has a `tags` array (split from the comma-separated `tag` column).
-
-### Featured carousel
-
-`pickFeatured` is a seeded shuffle. The seed comes from `state.rotation`:
-- `daily` — `dayOfYear() * 2654435761` (everyone sees the same set on the same day)
-- `weekly` — week-of-year × the same constant
-- `session` — random per page load (`sessionSeedRef`)
-
-Resources flagged `featured: true` (CSV column `featured` / `fokus`, truthy values: `1|true|ja|yes|x|y|fokus`) are pinned to the front of the carousel, then the rest is appended in shuffled order.
-
-### Security: URL allowlisting
-
-`safeHttps()` (defined identically in both `app.jsx` and `sheet.js`) restricts every URL — both `r.url` and `r.img` — to `https://` (or protocol-relative `//`, promoted to https). This blocks `javascript:`, `data:`, `file:`, `http:`, etc. from CSV input. **Always run untrusted URLs through `safeHttps` before rendering them as `href` or `background-image`.** Cards with no valid URL are dropped (`return null`).
-
-### Editmode bridge
-
-`app.jsx` posts `{type: '__edit_mode_available'}` and `{type: '__edit_mode_set_keys', edits: state}` to `window.parent`, and listens for `__activate_edit_mode` / `__deactivate_edit_mode` to open/close the Tweaks panel. The `defaults` literal in `App` is wrapped in `/*EDITMODE-BEGIN*/` … `/*EDITMODE-END*/` markers — an external editor pattern-replaces this block to persist tweak changes back into the source. **Don't reformat or remove these comments.**
-
-## CSV schema
-
-Columns (order doesn't matter, headers are case-insensitive, German or English):
-
-| German | English | Notes |
+**Faustregel zu Reloads:**
+| Was geändert | Lokal | Netlify |
 |---|---|---|
-| `id` | — | Optional; auto-assigned `s<row>` if missing |
-| `titel` | `title` | Required |
-| `beschreibung` | `desc` | |
-| `kategorie` | `cat` | Required; must be one of the `CATEGORIES` ids in `data.js` |
-| `url` / `link` | | Required; must be `https://` |
-| `tag` | | Comma-separated; first becomes the primary tag, all become chips |
-| `bild` / `image` / `img` | | Optional; `https://` only — falls back to generated SVG |
-| `featured` / `fokus` | | Truthy values pin the row to the carousel |
+| Code (jsx/css) | Vite reloadet automatisch | git push → auto-deploy |
+| `.env.local` / Env-Vars | Dev-Server **neu starten** | "Trigger deploy + Clear cache" |
+| Supabase-DB (SQL/Daten) | Browser-Tab refreshen | Browser-Tab refreshen |
 
-Adding a new category requires editing `CATEGORIES` in `src/data.js` (id, label, short label, color) **and** `categoryPalette()` in `src/placeholder.js` (bg/stripe/fg colors for the SVG fallback).
+Migration und Seed laufen **nicht automatisch** — `supabase/migrations/0001_init.sql` und `supabase/seed.sql` werden manuell im Supabase-Dashboard SQL-Editor ausgeführt. Beide sind idempotent (re-run = no-op außer Updates).
+
+## Architektur
+
+```
+Browser
+  ├── /                     → Public-Katalog (anon-SELECT auf categories/resources)
+  ├── /admin                → Magic-Link-Login
+  ├── /admin/callback       → AuthCallback (URL-Hash → Session)
+  ├── /admin/app            → ResourceList (RequireAuth wrapper)
+  │     ├── /new            → ResourceForm (create)
+  │     ├── /:id/edit       → ResourceForm (edit)
+  │     ├── /categories     → CategoryList
+  │     │     ├── /new      → CategoryForm
+  │     │     └── /:id/edit
+  ├── /datenschutz          → Platzhalter
+  └── /impressum            → Platzhalter
+                                    │
+                                    ▼ HTTPS
+                              ┌─────────────┐
+                              │  Supabase   │  Frankfurt
+                              │  Postgres   │  (RLS)
+                              │  + Auth     │
+                              │  + Storage  │
+                              └─────────────┘
+```
+
+### Datenfluss
+
+- **Public-Read:** `useResources()` und `useCategories()` Hooks rufen `supabase.from(...).select(...)` direkt aus dem Browser. RLS erlaubt anon-SELECT auf beide Tabellen.
+- **Admin-Schreib:** gleicher Client, aber mit gesetztem JWT in den Auth-Headern (Supabase-SDK macht das automatisch nach Login). RLS lässt INSERT/UPDATE/DELETE nur für `authenticated` zu.
+- **Bilder lesen:** `resolveImage()` (`src/lib/image.js`) baut die Public-CDN-URL über `getPublicUrl(image_path)` zusammen, oder liefert ein generiertes Placeholder-SVG (Data-URL) zurück, wenn `image_path = null`.
+- **Bilder schreiben:** `uploadImage()` / `deleteImage()` (`src/lib/storage.js`). Pfad-Schema: `<UUID>-<slug>.<ext>`. Beim Edit altes Bild explizit `remove([oldPath])`. Beim DB-Fail: hochgeladenes Bild zurückrollen.
+
+### DB-Schema
+
+Quelle der Wahrheit: `supabase/migrations/0001_init.sql`.
+
+- `categories` — id (text PK, regex `^[a-z0-9_-]{1,32}$`), label, short, color (hex), sort_order, timestamps.
+- `resources` — id (uuid), title, description, category_id (FK on delete restrict), url (check `^https://`), tags (text[]), image_path, featured, created_by/updated_by (auth.users), timestamps.
+- Trigger `set_updated_at` auf beiden Tabellen.
+- Storage-Bucket `resource-images` (public=true).
+- **GRANTs sind explizit gesetzt** für anon/authenticated — Supabase setzt sie in neueren Projekten nicht mehr automatisch, sonst „permission denied for table xyz" trotz passender RLS.
+
+### Featured-Karussell
+
+`pickDailyFeatured()` in `src/components/Carousel.jsx`: gepinnte Ressourcen (`featured = true`) zuerst, danach täglich rotierender Rest. Seed = `dayOfYear() * 2654435761` — alle Besucher:innen sehen am selben Tag dieselbe Auswahl. Der Carousel-Modus ist auf `daily` fest verdrahtet (kein Tweaks-Panel mehr wie im alten Prototyp).
+
+### Auth-Flow
+
+1. `/admin` → E-Mail-Eingabe → `signInWithOtp({ email, options: { emailRedirectTo, shouldCreateUser: false }})`.
+2. Klick auf Magic Link → `/admin/callback` → `detectSessionInUrl: true` im Client erkennt die Tokens im URL-Hash, etabliert Session.
+3. `RequireAuth` (`src/pages/admin/RequireAuth.jsx`) prüft Session via `getSession()` + abonniert `onAuthStateChange`. Bei keiner Session → Redirect `/admin`. Bei Session → `<Outlet context={{ session }} />`.
+4. `AdminLayout` umschliesst alle `/admin/app`-Seiten und reicht die Session über `useOutletContext()` weiter.
+
+### Admin-Whitelist
+
+Es gibt **kein eigenes admin-emails-Table**. Whitelist läuft über zwei Mechanismen kombiniert:
+- `shouldCreateUser: false` im Login-Form → unbekannte E-Mails bekommen keinen Magic Link.
+- Im Supabase-Dashboard unter **Authentication → Users → Invite user** werden Admin-E-Mails einzeln freigeschaltet.
+
+Heißt: jeder eingeladene User ist Admin. Keine Rollen-Differenzierung. Reicht für MVP, würde bei „read-only Editor" erweitert werden müssen.
+
+## Projektstruktur
+
+```
+src/
+  main.jsx                    Vite-Entry, Router-Tree, ConfigError-Fallback
+  styles.css                  Alle Styles (eine Datei, mit Sektions-Kommentaren)
+  assets/phzh-logo.png        Wordmark, von Vite gefingerprintet
+  lib/
+    supabase.js               Client-Init, exportiert `configError` bei fehlenden Env-Vars
+    safeHttps.js              URL-Allowlist (https-only)
+    placeholder.js            Data-URL-SVG aus Kategorie-Farbe
+    image.js                  resolveImage() — public-URL oder placeholder; RESOURCE_BUCKET
+    storage.js                uploadImage / deleteImage / validateImageFile
+  hooks/
+    useResources.js
+    useCategories.js
+  components/                 Public-Katalog
+    Topbar, SearchBar, Carousel (mit FeaturedCard + pickDailyFeatured),
+    CategoryNav, ResourceCard
+  pages/
+    Catalog.jsx               Haupt-Public-Page
+    ConfigError.jsx           Wenn Env-Vars fehlen
+    Datenschutz.jsx, Impressum.jsx — Platzhalter
+    admin/
+      Login.jsx               Magic-Link-Form
+      AuthCallback.jsx        verarbeitet Magic-Link-URL
+      RequireAuth.jsx         Nested-Route-Wrapper
+      AdminLayout.jsx         Topbar + Tab-Nav + Outlet
+      ResourceList.jsx        Tabelle aller Ressourcen
+      ResourceForm.jsx        Create/Edit, Bild-Upload
+      CategoryList.jsx
+      CategoryForm.jsx
+
+supabase/
+  migrations/0001_init.sql    Schema, RLS, GRANTs, Storage-Bucket, Policies
+  seed.sql                    10 Kategorien (UPSERT) + 30 Ressourcen (nur wenn leer)
+
+.github/
+  dependabot.yml              wöchentliche npm-/action-Updates
+  workflows/audit.yml         npm audit + build pro Push/PR
+
+netlify.toml                  Build + SPA-Redirect + Security-Header
+```
+
+### URL-Härtung
+
+`safeHttps()` (Quelle: `src/lib/safeHttps.js`) ist **die** Stelle für URL-Validierung im Code. Doppelt abgesichert durch DB-Check `check (url ~* '^https://')` auf `resources.url`. Bei jeder neuen Stelle, die User-Input als `href` oder `background-image` rendert: durch `safeHttps()` schicken.
+
+### Bei Fehlersuche zuerst prüfen
+
+- `permission denied for table xyz` → GRANTs in `0001_init.sql` ausführen, RLS-Policy passt nicht zur Rolle.
+- Leere Seite ohne Fehlermeldung → CSP zu strikt? Browser-Console öffnen, nach `Refused to load…` suchen, dann CSP in `netlify.toml` lockern.
+- Login-Magic-Link führt nicht zurück → Redirect-URL in Supabase nicht gewhitelisted (Authentication → URL Configuration).
+- Bild-Upload schlägt fehl mit RLS-Fehler → User ist nicht eingeloggt oder Storage-Policy fehlt.
+
+## Kategorie hinzufügen
+
+Im UI: `/admin/app/categories/new`. ID einmal vergeben, danach unveränderlich (FK-Schlüssel).
+
+Per SQL (für Bulk):
+```sql
+insert into categories (id, label, short, color, sort_order)
+values ('neue-id', 'Langform', 'Kurz', '#445566', 110);
+```
+
+## Ressource hinzufügen
+
+Im UI: `/admin/app/new`. Bild-Upload optional (Placeholder-SVG falls leer).
+
+Per SQL/CSV-Bulk: aktuell nicht im UI; `seed.sql` als Vorlage. Wenn das wieder gebraucht wird, ist `src/lib/sheet.js` aus dem Prototyp im Git-History (`git log -- src/sheet.js` auf dem Initial-Commit).
