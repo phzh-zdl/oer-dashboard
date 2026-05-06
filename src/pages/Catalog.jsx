@@ -31,7 +31,7 @@ export default function Catalog() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return resources.filter((r) => {
+    const result = resources.filter((r) => {
       if (cat !== 'all' && r.category_id !== cat) return false;
       if (activeTag && !(r.tags || []).includes(activeTag)) return false;
       if (!q) return true;
@@ -44,6 +44,17 @@ export default function Catalog() {
         (r.tags || []).some((t) => t.toLowerCase().includes(q)) ||
         catLabel.includes(q)
       );
+    });
+    // Stabile Reihenfolge: nach Kategorie-sort_order (= Reihenfolge der Pillen
+    // oben), innerhalb der Kategorie alphabetisch nach Titel mit deutschem
+    // Sortier-Locale (ä/ö/ü neben a/o/u, nicht am Ende).
+    return result.sort((a, b) => {
+      const ca = categoriesById[a.category_id];
+      const cb = categoriesById[b.category_id];
+      const oa = ca ? ca.sort_order : 9999;
+      const ob = cb ? cb.sort_order : 9999;
+      if (oa !== ob) return oa - ob;
+      return a.title.localeCompare(b.title, 'de');
     });
   }, [query, cat, activeTag, resources, categoriesById]);
 
