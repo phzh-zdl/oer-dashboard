@@ -790,6 +790,15 @@ body {
   margin-top: 8px;
 }
 
+.cat-color-chip {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  vertical-align: middle;
+}
+
 /* ───── Statische Seiten (Datenschutz, Impressum) ───── */
 .static-page {
   max-width: 720px;
