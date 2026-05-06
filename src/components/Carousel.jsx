@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { safeHttps } from '../lib/safeHttps.js';
 import { resolveImage } from '../lib/image.js';
 
@@ -69,15 +69,18 @@ function FeaturedCard({ resource, category }) {
 export function Carousel({ items, categoriesById }) {
   const [idx, setIdx] = useState(0);
   const [pausedUntil, setPausedUntil] = useState(0);
+  // scrollIdx wird auf Mobile durch natives Scroll-Verhalten getrieben
+  // und ist die Quelle der Wahrheit für die Pagination-Dots.
+  const [scrollIdx, setScrollIdx] = useState(0);
+  const viewportRef = useRef(null);
   const count = items.length;
   const visible = 3;
   const maxIdx = Math.max(1, count - visible + 1);
 
+  // Auto-Rotation nur auf Desktop. Auf Mobile (≤780px) übernimmt
+  // natives Scroll-Snap die Navigation.
   useEffect(() => {
     if (count <= visible) return;
-    // Auf Mobile (≤780px) übernimmt natives Scroll-Snap die Navigation —
-    // Auto-Rotation wäre dort nervig, weil sie das Touch-Scrollen
-    // permanent zurücksetzen würde.
     if (typeof window !== 'undefined' && window.matchMedia('(max-width: 780px)').matches) return;
     const t = setInterval(() => {
       if (Date.now() < pausedUntil) return;
@@ -85,6 +88,27 @@ export function Carousel({ items, categoriesById }) {
     }, 7000);
     return () => clearInterval(t);
   }, [count, pausedUntil, maxIdx]);
+
+  // Scroll-Position auf Mobile beobachten → aktiver Dot.
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const cardWidth = el.clientWidth; // auf Mobile = 1 Karte pro View
+      if (cardWidth === 0) return;
+      const newIdx = Math.round(el.scrollLeft / cardWidth);
+      setScrollIdx(newIdx);
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
+  function scrollToDot(targetIdx) {
+    const el = viewportRef.current;
+    if (!el) return;
+    const cardWidth = el.clientWidth;
+    el.scrollTo({ left: targetIdx * cardWidth, behavior: 'smooth' });
+  }
 
   const bumpPause = () => setPausedUntil(Date.now() + 12000);
   const prev = () => { bumpPause(); setIdx((i) => (i - 1 + maxIdx) % maxIdx); };
@@ -107,12 +131,27 @@ export function Carousel({ items, categoriesById }) {
         </div>
       </div>
 
-      <div className="featured-viewport">
+      <div className="featured-viewport" ref={viewportRef}>
         <div className="featured-track" style={{ transform: `translateX(calc(${-idx} * (100% / ${visible})))` }}>
           {items.map((r) => (
             <FeaturedCard key={r.id} resource={r} category={categoriesById[r.category_id]} />
           ))}
         </div>
+      </div>
+
+      {/* Pagination-Dots (CSS blendet auf Desktop aus). Reflektieren die
+          aktuelle Scroll-Position; Tap springt zur entsprechenden Karte. */}
+      <div className="featured-dots" role="tablist" aria-label="Im-Fokus-Navigation">
+        {items.map((_, i) => (
+          <button
+            key={i}
+            className={`featured-dot ${i === scrollIdx ? 'is-active' : ''}`}
+            onClick={() => scrollToDot(i)}
+            aria-label={`Karte ${i + 1} von ${count}`}
+            aria-selected={i === scrollIdx}
+            role="tab"
+          />
+        ))}
       </div>
     </section>
   );
