@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useResources } from '../hooks/useResources.js';
 import { useCategories } from '../hooks/useCategories.js';
 import { Topbar } from '../components/Topbar.jsx';
@@ -177,7 +178,11 @@ export default function Catalog() {
         </div>
         <div className="foot-meta">
           <span>© {new Date().getFullYear()} Pädagogische Hochschule Zürich</span>
-          <span>Impressum · Datenschutz · Kontakt</span>
+          <span>
+            <Link to="/impressum">Impressum</Link>
+            {' · '}
+            <Link to="/datenschutz">Datenschutz</Link>
+          </span>
         </div>
       </footer>
     </div>

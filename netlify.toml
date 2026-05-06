@@ -8,3 +8,21 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# ─────────────────────────────────────────────────────────────────
+# Security-Headers für alle Antworten
+#
+# Wichtig: connect-src und img-src enthalten *.supabase.co — sonst
+# blockt der Browser jede DB-Anfrage und jeden Storage-Bild-Request.
+# Wenn ihr später eine andere Domain einbindet (z. B. Plausible für
+# Analytics), müsst ihr diese hier explizit erlauben.
+# ─────────────────────────────────────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"

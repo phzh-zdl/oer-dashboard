@@ -156,11 +156,21 @@ insert into storage.buckets (id, name, public)
 values ('resource-images', 'resource-images', true)
 on conflict (id) do update set public = excluded.public;
 
--- Storage-Policies: lesen für alle, schreiben nur für authenticated
+-- Storage-Policies.
+--
+-- Wichtig zum Verständnis: für PUBLIC-Bilder reicht das `public = true`-Flag
+-- am Bucket — die URL aus getPublicUrl() wird über die Storage-CDN ausgeliefert
+-- und umgeht RLS komplett. RLS auf storage.objects regelt nur die API-Endpoints
+-- (z. B. Listing aller Bilder, Metadaten lesen).
+--
+-- Anon-SELECT ist deshalb absichtlich NICHT erlaubt — sonst könnte jemand
+-- via supabase.storage.from(...).list() alle Bildnamen/UUIDs aufzählen,
+-- was eine unnötige Informations-Leak-Quelle ist (Filenames enthalten
+-- Slugs aus Original-Uploads).
 drop policy if exists "resource_images_select" on storage.objects;
 create policy "resource_images_select"
   on storage.objects for select
-  to anon, authenticated
+  to authenticated
   using (bucket_id = 'resource-images');
 
 drop policy if exists "resource_images_insert" on storage.objects;

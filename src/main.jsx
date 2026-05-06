@@ -5,6 +5,8 @@ import './styles.css';
 import { configError } from './lib/supabase.js';
 import Catalog from './pages/Catalog.jsx';
 import ConfigError from './pages/ConfigError.jsx';
+import Datenschutz from './pages/Datenschutz.jsx';
+import Impressum from './pages/Impressum.jsx';
 import Login from './pages/admin/Login.jsx';
 import AuthCallback from './pages/admin/AuthCallback.jsx';
 import RequireAuth from './pages/admin/RequireAuth.jsx';
@@ -26,6 +28,8 @@ if (configError) {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Catalog />} />
+          <Route path="/datenschutz" element={<Datenschutz />} />
+          <Route path="/impressum" element={<Impressum />} />
           <Route path="/admin" element={<Login />} />
           <Route path="/admin/callback" element={<AuthCallback />} />
           <Route path="/admin/app" element={<RequireAuth />}>

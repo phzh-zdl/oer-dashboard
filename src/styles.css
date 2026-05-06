@@ -790,6 +790,52 @@ body {
   margin-top: 8px;
 }
 
+/* ───── Statische Seiten (Datenschutz, Impressum) ───── */
+.static-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  font-family: var(--f-sans);
+  color: var(--ink);
+  line-height: 1.65;
+}
+.static-page-head { margin-bottom: 32px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.static-back {
+  display: inline-block;
+  margin-bottom: 16px;
+  font-size: 13px;
+  font-family: var(--f-mono);
+  color: var(--ink-3);
+  text-decoration: none;
+}
+.static-back:hover { color: var(--ink); }
+.static-page h1 {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: 36px;
+  margin: 0 0 8px;
+}
+.static-stamp { color: var(--ink-3); font-size: 14px; margin: 0; }
+.static-page section { margin-bottom: 28px; }
+.static-page h2 {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 20px;
+  margin: 0 0 10px;
+  color: var(--ink);
+}
+.static-page p { margin: 0 0 12px; color: var(--ink-2); }
+.static-page ul { padding-left: 20px; color: var(--ink-2); }
+.static-page li { margin: 6px 0; }
+.static-page a { color: var(--accent); }
+.static-page code {
+  font-family: var(--f-mono);
+  font-size: 13px;
+  background: var(--bg-raised);
+  padding: 1px 5px;
+  border-radius: 2px;
+}
+
 /* ───── Loading / Error / Auth-Status ───── */
 .loading-state,
 .error-state {
