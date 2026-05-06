@@ -13,6 +13,8 @@ import RequireAuth from './pages/admin/RequireAuth.jsx';
 import AdminLayout from './pages/admin/AdminLayout.jsx';
 import ResourceList from './pages/admin/ResourceList.jsx';
 import ResourceForm from './pages/admin/ResourceForm.jsx';
+import CategoryList from './pages/admin/CategoryList.jsx';
+import CategoryForm from './pages/admin/CategoryForm.jsx';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
@@ -37,7 +39,9 @@ if (configError) {
               <Route index element={<ResourceList />} />
               <Route path="new" element={<ResourceForm />} />
               <Route path=":id/edit" element={<ResourceForm />} />
-              {/* Kategorien-Routen kommen mit Task #7 */}
+              <Route path="categories" element={<CategoryList />} />
+              <Route path="categories/new" element={<CategoryForm />} />
+              <Route path="categories/:id/edit" element={<CategoryForm />} />
             </Route>
           </Route>
         </Routes>
