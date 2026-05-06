@@ -48,6 +48,20 @@ body {
 .topbar-nav a:hover { color: var(--ink); border-color: var(--ink); }
 .topbar-cta { color: var(--accent) !important; border-bottom: 1px solid var(--accent) !important; }
 
+/* Hamburger-Button — nur auf Mobile sichtbar */
+.topbar-burger {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  width: 40px; height: 40px;
+  font-size: 22px; line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+}
+.topbar-burger:hover { background: var(--bg-raised); }
+
 .topbar-lede {
   display: flex; align-items: center; justify-content: space-between;
   gap: 32px; flex-wrap: wrap;
@@ -483,12 +497,79 @@ body {
   .rcard-list { grid-template-columns: 120px 1fr; }
   .rcard-list .rcard-side { grid-column: 2; }
   .hero-meta { gap: 32px; }
+  .admin-toolbar { flex-direction: column; gap: 10px; }
+  .admin-toolbar-select { min-width: 0; width: 100%; }
 }
+
+/* Mobile-Breakpoint: Hamburger statt Inline-Nav, Karussel mit Touch-Scroll */
+@media (max-width: 780px) {
+  .topbar-row { flex-wrap: nowrap; }
+  .topbar-burger { display: inline-flex; align-items: center; justify-content: center; }
+
+  /* Logo etwas kleiner auf Mobile, damit das Burger-Icon Platz hat */
+  .wm-logo { width: 100px; height: 44px; }
+  .wm-sep, .wm-product { display: none; }
+
+  /* Inline-Nav wird zu einem Drop-Down-Panel unter der Topbar.
+     Per default eingeklappt (max-height:0 + overflow:hidden), bei
+     .is-open vollwertig sichtbar. */
+  .topbar-nav {
+    position: absolute;
+    top: 100%; left: 0; right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    background: var(--bg-raised);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .25s ease;
+    z-index: 20;
+  }
+  .topbar-nav.is-open { max-height: 280px; }
+  .topbar-nav a {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .topbar-nav a:hover { background: var(--bg); border-bottom-color: var(--line-soft); }
+  .topbar-row { position: relative; }
+
+  /* Carousel: natives Touch-Scrollen mit Snap, ein Card pro View
+     mit kleinem Peek auf das nächste */
+  .featured-viewport {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-left: 0;
+    /* Scrollbar dezent ausblenden — Touch braucht keine */
+    scrollbar-width: none;
+  }
+  .featured-viewport::-webkit-scrollbar { display: none; }
+  .featured-track {
+    transform: none !important;  /* JS-Transform überschreiben */
+    transition: none !important;
+  }
+  .featured-card {
+    flex: 0 0 86%;
+    padding-right: 14px;
+    scroll-snap-align: start;
+  }
+  .featured-card:last-child { padding-right: 0; }
+  /* Prev/Next-Buttons machen mit Touch-Scrolling keinen Sinn */
+  .featured-ctrl { display: none; }
+}
+
 @media (max-width: 620px) {
+  .app { padding: 14px 16px 0; }
   .grid-grid { grid-template-columns: 1fr; }
   .tweaks { right: 12px; bottom: 12px; left: 12px; width: auto; }
   .hero-meta { grid-template-columns: repeat(3, 1fr); gap: 16px; }
   .hero-meta-n { font-size: 28px; }
+  /* Footer-Spalten enger zusammen */
+  .topbar-meta { flex-wrap: wrap; gap: 6px 10px; }
+  .admin-shell { padding: 14px 16px 60px; }
+  .admin-rcard-actions { flex-wrap: wrap; }
 }
 
 /* ───── Auth (Login / Callback) ───── */

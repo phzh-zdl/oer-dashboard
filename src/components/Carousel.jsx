@@ -75,6 +75,10 @@ export function Carousel({ items, categoriesById }) {
 
   useEffect(() => {
     if (count <= visible) return;
+    // Auf Mobile (≤780px) übernimmt natives Scroll-Snap die Navigation —
+    // Auto-Rotation wäre dort nervig, weil sie das Touch-Scrollen
+    // permanent zurücksetzen würde.
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 780px)').matches) return;
     const t = setInterval(() => {
       if (Date.now() < pausedUntil) return;
       setIdx((i) => (i + 1) % maxIdx);
