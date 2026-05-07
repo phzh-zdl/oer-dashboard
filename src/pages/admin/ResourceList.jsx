@@ -19,13 +19,14 @@ export default function ResourceList() {
     [categories]
   );
 
-  // Filtern: Suchstring matched Titel/Beschreibung/Tags/Kategorie-Label.
-  // Sortierung kommt aus useResources (updated_at desc) — bewusst NICHT
-  // umgeordnet wie im Public-Katalog, weil Admins typisch „was hab ich
-  // grad bearbeitet" oder „was ist neu" suchen.
+  // Filtern + sortieren wie der Public-Katalog: nach Kategorie-sort_order
+  // (= Reihenfolge der Pillen oben), innerhalb der Kategorie alphabetisch
+  // mit DE-Locale (Umlaute neben a/o/u). So kommt eine Ressource immer
+  // an derselben Stelle vor — egal ob im öffentlichen Katalog oder im
+  // Admin-View.
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return resources.filter((r) => {
+    const result = resources.filter((r) => {
       if (cat !== 'all' && r.category_id !== cat) return false;
       if (!q) return true;
       const catLabel = categoriesById[r.category_id]
@@ -37,6 +38,14 @@ export default function ResourceList() {
         (r.tags || []).some((t) => t.toLowerCase().includes(q)) ||
         catLabel.includes(q)
       );
+    });
+    return result.sort((a, b) => {
+      const ca = categoriesById[a.category_id];
+      const cb = categoriesById[b.category_id];
+      const oa = ca ? ca.sort_order : 9999;
+      const ob = cb ? cb.sort_order : 9999;
+      if (oa !== ob) return oa - ob;
+      return a.title.localeCompare(b.title, 'de');
     });
   }, [query, cat, resources, categoriesById]);
 
@@ -88,7 +97,7 @@ export default function ResourceList() {
 
       <div className="admin-toolbar-meta">
         <span>{filtered.length} Ressource{filtered.length === 1 ? '' : 'n'}</span>
-        <span className="admin-toolbar-sub">sortiert nach: zuletzt bearbeitet</span>
+        <span className="admin-toolbar-sub">sortiert wie im Katalog: Kategorie · Titel</span>
       </div>
 
       {filtered.length === 0 ? (
