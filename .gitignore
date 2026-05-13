@@ -23,3 +23,8 @@ Thumbs.db
 
 # Claude Code Plan-Dateien (lokal)
 .claude/
+
+# Audit-Notiz für die PHZH-Sicherheits-/Datenschutz-Stelle.
+# Bewusst nicht im Repo — Datei liegt lokal in
+# ~/Documents/AUDIT-oer-dashboard-private.md
+AUDIT.md
